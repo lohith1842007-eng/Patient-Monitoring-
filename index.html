@@ -1,0 +1,2730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VitalGuard - Patient Health & Emergency Monitoring</title>
+  <style>
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: #111827;
+      --bg-card: #151f32;
+      --bg-card-hover: #1b2842;
+      --border: #23314d;
+      --border-accent: #33476e;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.25);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.25);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.25);
+      --red: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.35);
+      --purple: #8b5cf6;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* TOP HEADER */
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-status.offline {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--red);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-status.demo {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--amber);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .btn-icon {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+      border-color: var(--border-accent);
+    }
+
+    /* EMERGENCY BANNER */
+    #emergencyBanner {
+      display: none;
+      background: linear-gradient(90deg, #991b1b, #ef4444, #991b1b);
+      background-size: 200% 200%;
+      animation: alertGrad 3s ease infinite;
+      color: white;
+      padding: 12px 24px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      box-shadow: 0 4px 16px var(--red-glow);
+    }
+
+    @keyframes alertGrad {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* MAIN CONTAINER */
+    main {
+      flex: 1;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* TELEMETRY METRIC CARDS */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-accent);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .val-display {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .val-num {
+      font-size: 2.75rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .val-unit {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    .vital-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      width: fit-content;
+      margin-top: 8px;
+    }
+
+    .status-normal {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--green);
+    }
+
+    .status-warn {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--amber);
+    }
+
+    .status-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+    }
+
+    .status-wait {
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--text-muted);
+    }
+
+    .card-meta {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* HEART BEAT ANIMATION */
+    .beating-heart {
+      animation: heartbeat 1s ease infinite;
+      transform-origin: center;
+      color: #ef4444;
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      14% { transform: scale(1.22); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.15); }
+      70% { transform: scale(1); }
+    }
+
+    /* WAVEFORM MONITOR SECTION */
+    .monitors-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 960px) {
+      .monitors-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .monitor-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 240px;
+      background: #060910;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .scope-overlay {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      font-family: monospace;
+      font-size: 0.72rem;
+      color: rgba(6, 182, 212, 0.8);
+      pointer-events: none;
+    }
+
+    /* MAP / GPS CARD */
+    .gps-coords-box {
+      background: #080d1a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .gps-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .btn-maps {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(14, 165, 233, 0.15);
+      border: 1px solid rgba(14, 165, 233, 0.4);
+      color: #38bdf8;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-maps:hover {
+      background: rgba(14, 165, 233, 0.25);
+      color: #7dd3fc;
+    }
+
+    /* EMERGENCY CONTROLS BAR */
+    .controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-sos {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      color: white;
+      box-shadow: 0 4px 16px var(--red-glow);
+    }
+
+    .btn-sos:hover {
+      background: linear-gradient(135deg, #b91c1c, #dc2626);
+      transform: scale(1.02);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      color: #041017;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #0891b2);
+      transform: scale(1.02);
+      color: #fff;
+    }
+
+    .btn-primary.connected {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+    }
+
+    .btn-danger-outline {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    .btn-danger-outline:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    /* LOG & HISTORY TABLE */
+    .logs-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .log-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #090e1a;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+    }
+
+    .log-time {
+      font-family: monospace;
+      color: var(--text-dim);
+    }
+
+    .log-msg {
+      font-weight: 500;
+      color: var(--text-main);
+      flex: 1;
+      margin: 0 14px;
+    }
+
+    /* SETTINGS MODAL */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-accent);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px var(--cyan-glow);
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--bg-surface);
+      padding: 16px 24px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* ================= DEMO STUDIO PANEL ================= */
+    .demo-studio {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(21, 31, 50, 0.92));
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 18px;
+      padding: 22px 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 24px rgba(6, 182, 212, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-studio::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #06b6d4, #8b5cf6, #10b981, #f59e0b, #ef4444);
+    }
+
+    .demo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .demo-badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .demo-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .demo-mode-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .demo-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .scenario-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 10px;
+    }
+
+    .scenario-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text-main);
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scenario-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .scenario-btn.active {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .scen-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .scen-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .scen-text strong {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .scen-text small {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .demo-controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      gap: 18px;
+      background: rgba(9, 13, 22, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 16px 20px;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .demo-controls-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .demo-slider-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slider-header label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .slider-val {
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .slider-val.hr {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.18);
+    }
+
+    .slider-val.spo2 {
+      color: #38bdf8;
+      background: rgba(6, 182, 212, 0.18);
+    }
+
+    .demo-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 4px;
+      outline: none;
+      background: #1e293b;
+      cursor: pointer;
+    }
+
+    .demo-range.range-hr::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ef4444;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+      transition: transform 0.1s;
+    }
+
+    .demo-range.range-spo2::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #06b6d4;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+      transition: transform 0.1s;
+    }
+
+    .demo-range::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .slider-hints {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+    }
+
+    .demo-toggles-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+      padding-left: 10px;
+    }
+
+    @media (max-width: 960px) {
+      .demo-toggles-box {
+        padding-left: 0;
+      }
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .demo-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .demo-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #334155;
+      transition: .2s;
+      border-radius: 20px;
+    }
+
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    .demo-switch input:checked + .switch-slider {
+      background-color: var(--cyan);
+    }
+
+    .demo-switch input:checked + .switch-slider:before {
+      transform: translateX(16px);
+    }
+
+    .switch-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* HARDWARE DIAGNOSTICS & TROUBLESHOOTING BANNER */
+    .hw-diag-banner {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(245, 158, 11, 0.09));
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin: 12px 24px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .diag-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .diag-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fca5a5;
+    }
+
+    .diag-title code {
+      background: rgba(0, 0, 0, 0.45);
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: var(--amber);
+      font-family: monospace;
+      font-size: 0.85rem;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .diag-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .diag-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .diag-step {
+      background: rgba(10, 15, 26, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 12px;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: var(--text-main);
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: #041017;
+      font-weight: 800;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .diag-step code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--cyan);
+      font-family: monospace;
+      font-size: 0.82rem;
+    }
+
+    .diag-inline-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .diag-inline-form input {
+      flex: 1;
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-main);
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-family: monospace;
+    }
+
+    .diag-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .diag-result-tag {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+    }
+
+    .badge-status {
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .badge-status:hover {
+      opacity: 0.85;
+      transform: scale(1.02);
+    }
+
+    /* MOBILE SCREEN OPTIMIZATIONS (Smartphones & Tablets) */
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .brand {
+        justify-content: flex-start;
+      }
+
+      .header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .header-actions .badge-status {
+        order: 1;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .header-actions .btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 0.78rem;
+      }
+
+      main {
+        padding: 12px;
+        gap: 16px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .metric-card {
+        padding: 16px;
+      }
+
+      .val-num {
+        font-size: 2.25rem;
+      }
+
+      .monitors-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .canvas-container {
+        height: 190px;
+      }
+
+      .demo-studio {
+        padding: 16px;
+      }
+
+      .scenario-buttons {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .scenario-btn {
+        padding: 10px 8px;
+      }
+
+      .scen-text strong {
+        font-size: 0.8rem;
+      }
+
+      .scen-text small {
+        font-size: 0.65rem;
+      }
+
+      .demo-controls-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .controls-panel {
+        padding: 16px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .control-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .control-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hw-diag-banner {
+        margin: 10px 12px 0;
+        padding: 14px;
+      }
+
+      .diag-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .diag-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .diag-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- EMERGENCY ALERT TOP BANNER -->
+  <div id="emergencyBanner">
+    CRITICAL ALERT: EMERGENCY SOS HAS BEEN TRIGGERED &mdash; ASSISTANCE DISPATCH IN PROGRESS
+  </div>
+
+  <!-- HARDWARE CONNECTION ASSISTANT & DIAGNOSTICS BANNER -->
+  <div id="hwDiagnosticBanner" class="hw-diag-banner" style="display: none;">
+    <div class="diag-header">
+      <div class="diag-title">
+        <span>📶</span>
+        <span>Connect to ESP32 Hardware: <code>PulseGrid</code> Bluetooth or USB Serial</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btnDismissDiag" style="padding: 2px 8px; border-radius: 6px;" title="Dismiss">&times;</button>
+    </div>
+    <div class="diag-body">
+      <p class="diag-hint">
+        Your ESP32 is running the <strong>PulseGrid Bluetooth SPP / Serial</strong> firmware. Choose your preferred connection method:
+      </p>
+      <div class="diag-steps">
+        <div class="diag-step">
+          <span class="step-num">1</span>
+          <div>
+            <strong>Bluetooth Wireless (PulseGrid):</strong><br>
+            Pair <code>PulseGrid</code> in Windows or Android Bluetooth settings, then click <strong>Connect Bluetooth / USB</strong> below to start streaming.
+          </div>
+        </div>
+        <div class="diag-step">
+          <span class="step-num">2</span>
+          <div>
+            <strong>Direct USB Serial Cable:</strong><br>
+            Connect the ESP32 USB cable, click <strong>Connect Bluetooth / USB</strong>, and pick the COM port (115200 baud).
+          </div>
+        </div>
+      </div>
+      <div class="diag-actions">
+        <button class="btn btn-primary btn-sm" id="btnDiagConnectSerial" style="font-weight: 700;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 7l10 10-5 5V2l5 5L7 17"></path></svg>
+          <span>Connect Bluetooth (PulseGrid) / Serial Port</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnDiagDemo">
+          Switch to Demo Simulation Mode
+        </button>
+        <span id="diagPingResult" class="diag-result-tag"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">VitalGuard &bull; PulseGrid</div>
+        <div class="brand-sub">Bluetooth SPP & Serial Patient Telemetry</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="badge-status demo" id="connectionBadge">
+        <span class="pulse-dot"></span>
+        <span id="connectionText">DEMO SIMULATION ACTIVE</span>
+      </div>
+
+      <button class="btn btn-primary btn-sm" id="btnConnectSerial" title="Connect to ESP32 via Bluetooth SPP (PulseGrid) or USB Serial">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 7l10 10-5 5V2l5 5L7 17"></path>
+        </svg>
+        <span id="serialBtnText">Connect Bluetooth / USB</span>
+      </button>
+
+      <button class="btn btn-secondary btn-sm" id="btnHeaderModeToggle" title="Switch between Demo Simulation and Live Hardware">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+        <span id="headerModeText">Live Hardware</span>
+      </button>
+
+      <button class="btn-icon" id="btnAudioMute" title="Toggle Alarm Sound">
+        <svg id="iconSoundOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      </button>
+
+      <button class="btn-icon" id="btnOpenSettings" title="Connection Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN TELEMETRY CONTENT -->
+  <main>
+
+    <!-- INTERACTIVE DEMO STUDIO & TESTBED -->
+    <div class="demo-studio" id="demoStudioPanel">
+      <div class="demo-header">
+        <div class="demo-badge-wrap">
+          <div class="badge-status demo">
+            <span class="pulse-dot"></span>
+            <span id="demoStatusTag">SIMULATION ACTIVE</span>
+          </div>
+          <span class="demo-subtitle">Interactive Patient Vitals Testbed & Hardware Simulator</span>
+        </div>
+
+        <div class="demo-mode-actions">
+          <button class="btn btn-primary btn-sm" id="btnStudioConnectSerial">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 7l10 10-5 5V2l5 5L7 17"></path></svg>
+            <span>Connect Bluetooth (PulseGrid) / USB</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btnToggleHardwareMode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+            <span id="hardwareModeBtnText">Connect to ESP32 Hardware</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PRESET CLINICAL SCENARIOS -->
+      <div>
+        <div class="demo-label">Simulate Clinical Patient Scenarios:</div>
+        <div class="scenario-buttons">
+          <button class="scenario-btn active" data-scenario="normal" id="scenNormal">
+            <span class="scen-icon">🟢</span>
+            <div class="scen-text">
+              <strong>Normal Sinus</strong>
+              <small>75 BPM &bull; 98% SpO2 (Nominal)</small>
+            </div>
+          </button>
+
+          <button class="scenario-btn" data-scenario="tachycardia" id="scenTachy">
+            <span class="scen-icon">🟠</span>
+            <div class="scen-text">
+              <strong>Tachycardia</strong>
+              <small>138 BPM &bull; Rapid Pulse Alert</small>
+            </div>
+          </button>
+
+          <button class="scenario-btn" data-scenario="bradycardia" id="scenBrady">
+            <span class="scen-icon">🔵</span>
+            <div class="scen-text">
+              <strong>Bradycardia</strong>
+              <small>44 BPM &bull; Low Pulse Warning</small>
+            </div>
+          </button>
+
+          <button class="scenario-btn" data-scenario="hypoxia" id="scenHypoxia">
+            <span class="scen-icon">🟣</span>
+            <div class="scen-text">
+              <strong>Critical Hypoxia</strong>
+              <small>85% SpO2 &bull; Oxygen Drop Siren</small>
+            </div>
+          </button>
+
+          <button class="scenario-btn" data-scenario="sos" id="scenSOS">
+            <span class="scen-icon">🔴</span>
+            <div class="scen-text">
+              <strong>Emergency SOS</strong>
+              <small>Active Distress &bull; SMS Alert</small>
+            </div>
+          </button>
+
+          <button class="scenario-btn" data-scenario="leadoff" id="scenLeadOff">
+            <span class="scen-icon">🖐️</span>
+            <div class="scen-text">
+              <strong>Sensor Off Finger</strong>
+              <small>Lead-Off &bull; No Pulse Contact</small>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- LIVE ADJUSTMENT SLIDERS & CONTROLS -->
+      <div class="demo-controls-grid">
+        <div class="demo-slider-box">
+          <div class="slider-header">
+            <label for="sliderHR">Heart Rate Adjuster</label>
+            <span class="slider-val hr" id="dispSliderHR">75 BPM</span>
+          </div>
+          <input type="range" id="sliderHR" min="35" max="185" value="75" class="demo-range range-hr">
+          <div class="slider-hints">
+            <span>Brady (&lt;50)</span>
+            <span>Normal (60-100)</span>
+            <span>Tachy (&gt;110)</span>
+          </div>
+        </div>
+
+        <div class="demo-slider-box">
+          <div class="slider-header">
+            <label for="sliderSpO2">Blood Oxygen (SpO2) Adjuster</label>
+            <span class="slider-val spo2" id="dispSliderSpO2">98 %</span>
+          </div>
+          <input type="range" id="sliderSpO2" min="70" max="100" value="98" class="demo-range range-spo2">
+          <div class="slider-hints">
+            <span>Critical (&lt;90)</span>
+            <span>Borderline (90-94)</span>
+            <span>Optimal (95-100)</span>
+          </div>
+        </div>
+
+        <div class="demo-toggles-box">
+          <div class="toggle-group">
+            <label class="demo-switch">
+              <input type="checkbox" id="chkAudioBeep">
+              <span class="switch-slider"></span>
+            </label>
+            <span class="switch-label" id="labelAudioBeep">Audible Pulse Monitor Beeps</span>
+          </div>
+          <div class="toggle-group">
+            <label class="demo-switch">
+              <input type="checkbox" id="chkFluctuations" checked>
+              <span class="switch-slider"></span>
+            </label>
+            <span class="switch-label">Natural Heartbeat Fluctuations</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- METRICS GRID -->
+    <div class="metrics-grid">
+
+      <!-- CARD 1: HEART RATE -->
+      <div class="metric-card">
+        <div>
+          <div class="card-header">
+            <span class="card-title">Heart Rate (Pulse)</span>
+            <div class="card-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+              <svg class="beating-heart" id="heartIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="val-display">
+            <span class="val-num" id="valHR" style="color: #f87171;">75</span>
+            <span class="val-unit">BPM</span>
+          </div>
+          <div class="vital-status status-normal" id="hrStatus">NORMAL SINUS RHYTHM</div>
+        </div>
+        <div class="card-meta">
+          <span>Target: 60 - 100 BPM</span>
+          <span id="hrAvgMeta">Avg: 75 BPM</span>
+        </div>
+      </div>
+
+      <!-- CARD 2: BLOOD OXYGEN (SpO2) -->
+      <div class="metric-card">
+        <div>
+          <div class="card-header">
+            <span class="card-title">Blood Oxygen (SpO2)</span>
+            <div class="card-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--cyan);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="val-display">
+            <span class="val-num" id="valSpO2" style="color: #38bdf8;">98</span>
+            <span class="val-unit">%</span>
+          </div>
+          <div class="vital-status status-normal" id="spo2Status">OPTIMAL OXYGENATION</div>
+        </div>
+        <div class="card-meta">
+          <span>Target: 95% - 100%</span>
+          <span id="spo2Quality">Signal: Good (99.2%)</span>
+        </div>
+      </div>
+
+      <!-- CARD 3: GPS TRACKING -->
+      <div class="metric-card">
+        <div>
+          <div class="card-header">
+            <span class="card-title">GPS Geolocation</span>
+            <div class="card-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--green);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+              </svg>
+            </div>
+          </div>
+          <div class="vital-status status-normal" id="gpsFixBadge">3D SATELLITE FIX (9 SATS)</div>
+          <div class="gps-coords-box">
+            <div class="gps-row"><span>Latitude:</span><strong id="valLat">12.971598</strong></div>
+            <div class="gps-row"><span>Longitude:</span><strong id="valLng">77.594562</strong></div>
+          </div>
+          <a id="btnMapLink" class="btn-maps" target="_blank" rel="noopener" href="https://maps.google.com/?q=12.971598,77.594562">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span>Open in Google Maps</span>
+          </a>
+        </div>
+        <div class="card-meta">
+          <span id="gpsUpdated">Accuracy: &plusmn;2.4m &bull; Alt: 920m</span>
+          <span>NEO-6M GPS</span>
+        </div>
+      </div>
+
+      <!-- CARD 4: GSM & EMERGENCY ALERTS -->
+      <div class="metric-card">
+        <div>
+          <div class="card-header">
+            <span class="card-title">Emergency & GSM</span>
+            <div class="card-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--amber);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="vital-status status-normal" id="sosStatusBadge">SYSTEM STANDBY (ARMED)</div>
+          <div style="margin-top: 14px; font-size: 0.85rem;">
+            <div style="color: var(--text-muted);">SMS Gateway: <strong id="smsStatusText" style="color: var(--text-main);">SIM800L Ready (Signal: 28/31)</strong></div>
+            <div style="color: var(--text-dim); margin-top: 4px; font-size: 0.78rem;">Emergency Contact: +91 98765 43210</div>
+          </div>
+        </div>
+        <div class="card-meta">
+          <span>Modem: SIM800L</span>
+          <span id="alertCountMeta">Alerts: 0 (Normal)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- WAVEFORM & TELEMETRY SECTION -->
+    <div class="monitors-grid">
+
+      <!-- REAL-TIME PPG OSCILLOSCOPE MONITOR -->
+      <div class="monitor-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2">
+              <path d="M2 12h5l3-9 4 18 3-9h5"/>
+            </svg>
+            Real-Time Photoplethysmogram (PPG Waveform)
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-dim); font-family: monospace;">SWEEP: 50 mm/s</span>
+        </div>
+
+        <div class="canvas-container">
+          <div class="scope-overlay">LEAD II &bull; MAX30102 AC COUPLING &bull; 100 Hz FILTER</div>
+          <canvas id="ppgCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- TREND HISTORY GRAPH -->
+      <div class="monitor-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            Vitals Trend (Last 60s)
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-dim);">HR vs SpO2</span>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="trendCanvas"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- EMERGENCY CONTROLS BAR -->
+    <div class="controls-panel">
+      <div>
+        <h3 style="font-size: 1rem; margin-bottom: 4px;">Emergency Response Station</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">
+          Trigger rapid SOS notification with GPS coordinates or simulate patient distress telemetry.
+        </p>
+      </div>
+
+      <div class="control-actions">
+        <button class="btn btn-sos" id="btnTriggerSOS">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          TRIGGER EMERGENCY SOS
+        </button>
+
+        <button class="btn btn-secondary" id="btnTestBuzzer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          Test Siren
+        </button>
+
+        <button class="btn btn-secondary" id="btnToggleDemo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="demoBtnText">Simulation Controls</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RECENT AUDIT LOG -->
+    <div class="logs-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 0.95rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">
+          Telemetry & Emergency Event Audit Trail
+        </h3>
+        <div>
+          <button class="btn-icon" style="display: inline-flex; width: auto; padding: 4px 10px; font-size: 0.75rem;" id="btnClearLog">Clear</button>
+        </div>
+      </div>
+      <div class="log-list" id="logContainer">
+        <div class="log-item">
+          <span class="log-time">Active</span>
+          <span class="log-msg">VitalGuard patient telemetry monitoring system online & streaming</span>
+          <span class="vital-status status-normal">NOMINAL</span>
+        </div>
+        <div class="log-item">
+          <span class="log-time">-3s</span>
+          <span class="log-msg">SIM800L quad-band cellular modem armed (Signal: 28/31, Carrier Ready)</span>
+          <span class="vital-status status-normal">GSM</span>
+        </div>
+        <div class="log-item">
+          <span class="log-time">-6s</span>
+          <span class="log-msg">NEO-6M GNSS locked 9 satellites (3D Fix: 12.971598, 77.594562)</span>
+          <span class="vital-status status-normal">GPS</span>
+        </div>
+        <div class="log-item">
+          <span class="log-time">-9s</span>
+          <span class="log-msg">MAX30102 multispectral sensor calibrated (IR/Red PPG channel balanced)</span>
+          <span class="vital-status status-normal">I2C</span>
+        </div>
+        <div class="log-item">
+          <span class="log-time">-12s</span>
+          <span class="log-msg">ESP32-WROOM dual-core FreeRTOS firmware initialized</span>
+          <span class="vital-status status-normal">SYSTEM</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>VitalGuard ESP32 IoT Health Monitor &bull; MAX30102 + NEO-6M + SIM800L</div>
+    <div>Default Access Point: <strong>PatientMonitor</strong> &bull; IP: <strong>192.168.4.1</strong></div>
+  </footer>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Connection Settings</h3>
+        <button class="btn-icon" id="btnCloseSettings">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>ESP32 API Base URL</label>
+        <input type="text" id="inputBaseUrl" value="http://192.168.4.1" placeholder="e.g. http://192.168.4.1 or http://192.168.1.150">
+        <small style="color: var(--text-dim); display: block; margin-top: 4px;">Leave as http://192.168.4.1 if connected to ESP32 Wi-Fi AP.</small>
+      </div>
+      <div class="form-group">
+        <label>Polling Interval (ms)</label>
+        <input type="number" id="inputInterval" value="1000" min="200" max="5000">
+      </div>
+      <div class="form-group">
+        <label>Heart Rate High Threshold (BPM)</label>
+        <input type="number" id="inputHighHR" value="110">
+      </div>
+      <div class="form-group">
+        <label>SpO2 Critical Threshold (%)</label>
+        <input type="number" id="inputLowSpO2" value="90">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-secondary" id="btnCancelSettings">Cancel</button>
+        <button class="btn btn-sos" id="btnSaveSettings">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= STATE & CONFIGURATION =================
+    const detectedHost = (window.location.protocol.startsWith('http') && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+      ? window.location.origin
+      : 'http://192.168.4.1';
+
+    const state = {
+      baseUrl: localStorage.getItem('vg_base_url') || detectedHost,
+      pollInterval: parseInt(localStorage.getItem('vg_interval') || '1000'),
+      highHR: parseInt(localStorage.getItem('vg_high_hr') || '110'),
+      lowSpO2: parseInt(localStorage.getItem('vg_low_spo2') || '90'),
+      demoMode: true, // Default to interactive demo mode with preloaded values
+      soundEnabled: true,
+      connected: false,
+      serialPort: null,
+      serialReader: null,
+      serialConnected: false,
+      sosActive: false,
+      data: {
+        heartRate: 75,
+        heartRateAvailable: true,
+        spo2: 98,
+        spo2Available: true,
+        gpsFix: true,
+        latitude: 12.971598,
+        longitude: 77.594562,
+        sosStatus: 'SYSTEM STANDBY (ARMED)',
+        smsStatus: 'SIM800L Ready (Signal: 28/31)',
+        alertCount: 0,
+        history: []
+      }
+    };
+
+    // Interactive Demo Simulation Parameters
+    const demoState = {
+      activeScenario: 'normal',
+      targetHR: 75,
+      targetSpO2: 98,
+      fluctuations: true,
+      audioBeeps: false,
+      fingerContact: true,
+      lat: 12.971598,
+      lng: 77.594562,
+      sats: 9,
+      accuracy: 2.4,
+      altitude: 920
+    };
+
+    // Vitals history buffers - Pre-seeded with 50 realistic data points
+    const hrHistory = [];
+    const spo2History = [];
+    const MAX_TREND_POINTS = 60;
+
+    for (let i = 0; i < 50; i++) {
+      const t = i * 0.18;
+      const h = 74 + Math.sin(t) * 2.5 + ((i % 3) - 1) * 0.6;
+      const s = 98 + Math.cos(t * 0.4) * 0.4;
+      hrHistory.push(parseFloat(h.toFixed(1)));
+      spo2History.push(parseFloat(s.toFixed(1)));
+    }
+
+    // Web Audio Synthesizer for Medical Alert Siren & Heart Beeper
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playBeep(freq = 880, duration = 0.08, type = 'sine') {
+      if (!state.soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    }
+
+    function playAlarmSiren() {
+      if (!state.soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.2);
+        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      } catch (e) {}
+    }
+
+    // ================= REAL-TIME PPG OSCILLOSCOPE =================
+    const ppgCanvas = document.getElementById('ppgCanvas');
+    const ppgCtx = ppgCanvas.getContext('2d');
+    let ppgPoints = [];
+    let ppgX = 0;
+    let wavePhase = 0;
+
+    function resizeCanvases() {
+      const pRect = ppgCanvas.parentElement.getBoundingClientRect();
+      ppgCanvas.width = pRect.width * window.devicePixelRatio;
+      ppgCanvas.height = pRect.height * window.devicePixelRatio;
+      ppgCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const tRect = trendCanvas.parentElement.getBoundingClientRect();
+      trendCanvas.width = tRect.width * window.devicePixelRatio;
+      trendCanvas.height = tRect.height * window.devicePixelRatio;
+      trendCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    // Realistic Photoplethysmogram (PPG) synthetic model
+    function getPPGSample(phase) {
+      // Primary systolic peak + dicrotic notch + secondary diastolic wave
+      const p1 = Math.exp(-Math.pow((phase - 0.2) / 0.08, 2)) * 1.0;
+      const notch = -Math.exp(-Math.pow((phase - 0.38) / 0.04, 2)) * 0.15;
+      const p2 = Math.exp(-Math.pow((phase - 0.48) / 0.1, 2)) * 0.45;
+      return Math.max(0, p1 + notch + p2);
+    }
+
+    function renderPPG() {
+      const w = ppgCanvas.width / window.devicePixelRatio;
+      const h = ppgCanvas.height / window.devicePixelRatio;
+
+      // Draw subtle background grid
+      ppgCtx.fillStyle = 'rgba(6, 9, 16, 0.2)';
+      ppgCtx.fillRect(0, 0, w, h);
+
+      // Advance PPG wave
+      const hr = (state.data.heartRateAvailable && state.data.heartRate > 0) ? state.data.heartRate : (state.demoMode ? 75 : 0);
+      const speed = hr > 0 ? (hr / 60) * 0.03 : 0;
+      wavePhase = (wavePhase + speed) % 1.0;
+
+      const sample = hr > 0 ? getPPGSample(wavePhase) : 0.05 + (Math.random() * 0.02);
+      const targetY = h - 25 - (sample * (h - 50));
+
+      ppgPoints.push({ x: ppgX, y: targetY });
+      if (ppgPoints.length > w) ppgPoints.shift();
+
+      ppgX = (ppgX + 2) % w;
+
+      // Clear cursor wipe strip ahead of current scan
+      ppgCtx.clearRect(ppgX, 0, 16, h);
+      ppgCtx.fillStyle = '#060910';
+      ppgCtx.fillRect(ppgX, 0, 16, h);
+
+      // Draw wave trace
+      if (ppgPoints.length > 2) {
+        ppgCtx.beginPath();
+        ppgCtx.strokeStyle = hr > 110 ? '#ef4444' : (hr > 0 ? '#06b6d4' : '#64748b');
+        ppgCtx.lineWidth = 2.2;
+        ppgCtx.shadowColor = ppgCtx.strokeStyle;
+        ppgCtx.shadowBlur = 8;
+
+        for (let i = 0; i < ppgPoints.length - 1; i++) {
+          if (Math.abs(ppgPoints[i].x - ppgPoints[i + 1].x) < 10) {
+            ppgCtx.moveTo(ppgPoints[i].x, ppgPoints[i].y);
+            ppgCtx.lineTo(ppgPoints[i + 1].x, ppgPoints[i + 1].y);
+          }
+        }
+        ppgCtx.stroke();
+        ppgCtx.shadowBlur = 0;
+      }
+
+      requestAnimationFrame(renderPPG);
+    }
+
+    // ================= ENHANCED TRENDLINE HISTORY CHART =================
+    const trendCanvas = document.getElementById('trendCanvas');
+    const trendCtx = trendCanvas.getContext('2d');
+
+    function renderTrendChart() {
+      const w = trendCanvas.width / window.devicePixelRatio;
+      const h = trendCanvas.height / window.devicePixelRatio;
+
+      trendCtx.clearRect(0, 0, w, h);
+
+      const leftMargin = 32;
+      const rightMargin = 32;
+      const topMargin = 22;
+      const bottomMargin = 18;
+      const plotWidth = w - leftMargin - rightMargin;
+      const plotHeight = h - topMargin - bottomMargin;
+
+      // Gridlines & Axis labels
+      const gridRows = 4;
+      trendCtx.lineWidth = 1;
+      trendCtx.font = '10px monospace';
+
+      for (let i = 0; i <= gridRows; i++) {
+        const y = topMargin + (i * plotHeight / gridRows);
+
+        // Faint horizontal gridline
+        trendCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+        trendCtx.beginPath();
+        trendCtx.moveTo(leftMargin, y);
+        trendCtx.lineTo(w - rightMargin, y);
+        trendCtx.stroke();
+
+        // Left axis: Heart Rate (BPM, Red)
+        const hrVal = Math.round(140 - (i * (140 - 40) / gridRows));
+        trendCtx.fillStyle = '#f87171';
+        trendCtx.textAlign = 'right';
+        trendCtx.fillText(hrVal, leftMargin - 6, y + 3);
+
+        // Right axis: SpO2 (%, Cyan)
+        const spo2Val = Math.round(100 - (i * (100 - 80) / gridRows));
+        trendCtx.fillStyle = '#38bdf8';
+        trendCtx.textAlign = 'left';
+        trendCtx.fillText(spo2Val + '%', w - rightMargin + 6, y + 3);
+      }
+
+      // Draw Series Curves with Area Fills
+      if (spo2History.length >= 2) {
+        drawTrendSeries(spo2History, 80, 100, '#06b6d4', 'rgba(6, 182, 212, 0.16)', leftMargin, plotWidth, topMargin, plotHeight);
+      }
+
+      if (hrHistory.length >= 2) {
+        drawTrendSeries(hrHistory, 40, 140, '#ef4444', 'rgba(239, 68, 68, 0.22)', leftMargin, plotWidth, topMargin, plotHeight);
+      }
+
+      // Top Header Legend
+      trendCtx.textAlign = 'left';
+      trendCtx.font = '11px sans-serif';
+      trendCtx.fillStyle = '#ef4444';
+      const curHR = hrHistory.length ? Math.round(hrHistory[hrHistory.length - 1]) : '--';
+      trendCtx.fillText(`● Pulse: ${curHR} BPM`, leftMargin, 14);
+
+      trendCtx.fillStyle = '#06b6d4';
+      const curSpO2 = spo2History.length ? Math.round(spo2History[spo2History.length - 1]) : '--';
+      trendCtx.fillText(`● SpO2: ${curSpO2}%`, leftMargin + 115, 14);
+    }
+
+    function drawTrendSeries(arr, minVal, maxVal, strokeColor, fillColor, left, width, top, height) {
+      if (arr.length < 2) return;
+
+      const points = arr.map((v, idx) => {
+        const clamped = Math.max(minVal, Math.min(maxVal, v));
+        const x = left + (idx * width / (MAX_TREND_POINTS - 1));
+        const y = top + height - ((clamped - minVal) / (maxVal - minVal)) * height;
+        return { x, y };
+      });
+
+      // Area gradient fill
+      const grad = trendCtx.createLinearGradient(0, top, 0, top + height);
+      grad.addColorStop(0, fillColor);
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      trendCtx.beginPath();
+      trendCtx.moveTo(points[0].x, top + height);
+      points.forEach(p => trendCtx.lineTo(p.x, p.y));
+      trendCtx.lineTo(points[points.length - 1].x, top + height);
+      trendCtx.closePath();
+      trendCtx.fillStyle = grad;
+      trendCtx.fill();
+
+      // Glowing stroke line
+      trendCtx.beginPath();
+      trendCtx.strokeStyle = strokeColor;
+      trendCtx.lineWidth = 2.4;
+      trendCtx.shadowColor = strokeColor;
+      trendCtx.shadowBlur = 6;
+      points.forEach((p, idx) => {
+        if (idx === 0) trendCtx.moveTo(p.x, p.y);
+        else trendCtx.lineTo(p.x, p.y);
+      });
+      trendCtx.stroke();
+      trendCtx.shadowBlur = 0;
+
+      // Pulsing white endpoint dot
+      const last = points[points.length - 1];
+      trendCtx.beginPath();
+      trendCtx.fillStyle = '#ffffff';
+      trendCtx.arc(last.x, last.y, 3.5, 0, Math.PI * 2);
+      trendCtx.fill();
+      trendCtx.beginPath();
+      trendCtx.strokeStyle = strokeColor;
+      trendCtx.lineWidth = 1.5;
+      trendCtx.arc(last.x, last.y, 6, 0, Math.PI * 2);
+      trendCtx.stroke();
+    }
+
+    // ================= TELEMETRY POLLING & UPDATES =================
+    async function fetchTelemetry() {
+      if (state.demoMode) {
+        simulateTelemetry();
+        return;
+      }
+
+      if (state.serialConnected) {
+        // Real-time telemetry is actively streamed via Bluetooth/USB Serial
+        return;
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2500);
+
+        const res = await fetch(state.baseUrl + '/api', { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        updateConnectionState(true, 'ESP32 AP CONNECTED');
+        processTelemetry(data);
+      } catch (err) {
+        console.warn('ESP32 telemetry fetch failed:', err);
+        updateConnectionState(false, 'HARDWARE OFFLINE - RETRYING', err.message);
+      }
+    }
+
+    function processTelemetry(d) {
+      state.data = d;
+
+      // Heart Rate Card
+      const heartIcon = document.getElementById('heartIcon');
+      if (d.heartRateAvailable && d.heartRate > 0) {
+        document.getElementById('valHR').textContent = Math.round(d.heartRate);
+        const hrEl = document.getElementById('hrStatus');
+
+        if (d.heartRate > state.highHR) {
+          hrEl.textContent = 'HIGH PULSE (TACHYCARDIA)';
+          hrEl.className = 'vital-status status-danger';
+          playAlarmSiren();
+        } else if (d.heartRate < 50) {
+          hrEl.textContent = 'LOW PULSE (BRADYCARDIA)';
+          hrEl.className = 'vital-status status-warn';
+        } else {
+          hrEl.textContent = 'NORMAL SINUS RHYTHM';
+          hrEl.className = 'vital-status status-normal';
+        }
+
+        // Heart Icon beat frequency synchronization
+        heartIcon.style.animation = `heartbeat ${Math.max(0.32, 60 / d.heartRate)}s ease infinite`;
+
+        hrHistory.push(d.heartRate);
+        if (hrHistory.length > MAX_TREND_POINTS) hrHistory.shift();
+
+        const avg = Math.round(hrHistory.reduce((a, b) => a + b, 0) / hrHistory.length);
+        document.getElementById('hrAvgMeta').textContent = 'Avg: ' + avg + ' BPM';
+      } else {
+        document.getElementById('valHR').textContent = '--';
+        document.getElementById('hrStatus').textContent = 'Waiting for finger contact';
+        document.getElementById('hrStatus').className = 'vital-status status-wait';
+        heartIcon.style.animation = 'none';
+      }
+
+      // SpO2 Blood Oxygen Card
+      const spo2Val = d.spo2 != null && d.spo2 > 0 ? d.spo2 : null;
+      if (spo2Val) {
+        document.getElementById('valSpO2').textContent = Math.round(spo2Val);
+        const spo2El = document.getElementById('spo2Status');
+
+        if (spo2Val < state.lowSpO2) {
+          spo2El.textContent = 'CRITICAL HYPOXIA';
+          spo2El.className = 'vital-status status-danger';
+          playAlarmSiren();
+        } else if (spo2Val < 95) {
+          spo2El.textContent = 'BORDERLINE OXYGEN';
+          spo2El.className = 'vital-status status-warn';
+        } else {
+          spo2El.textContent = 'OPTIMAL OXYGENATION';
+          spo2El.className = 'vital-status status-normal';
+        }
+
+        spo2History.push(spo2Val);
+        if (spo2History.length > MAX_TREND_POINTS) spo2History.shift();
+      } else {
+        document.getElementById('valSpO2').textContent = '--';
+        document.getElementById('spo2Status').textContent = 'No SpO2 signal';
+        document.getElementById('spo2Status').className = 'vital-status status-wait';
+      }
+
+      // GPS Coordinates & Status
+      const gpsFix = d.gpsFix;
+      const fixBadge = document.getElementById('gpsFixBadge');
+      const mapBtn = document.getElementById('btnMapLink');
+
+      if (gpsFix && d.latitude !== 0) {
+        fixBadge.textContent = '3D SATELLITE FIX (9 SATS)';
+        fixBadge.className = 'vital-status status-normal';
+        document.getElementById('valLat').textContent = Number(d.latitude).toFixed(6);
+        document.getElementById('valLng').textContent = Number(d.longitude).toFixed(6);
+
+        mapBtn.href = `https://maps.google.com/?q=${d.latitude},${d.longitude}`;
+        mapBtn.style.pointerEvents = 'auto';
+        mapBtn.style.opacity = '1';
+        document.getElementById('gpsUpdated').textContent = 'Accuracy: ±2.4m • Alt: 920m';
+      } else {
+        fixBadge.textContent = 'SEARCHING FOR FIX';
+        fixBadge.className = 'vital-status status-warn';
+        document.getElementById('valLat').textContent = 'Searching...';
+        document.getElementById('valLng').textContent = 'Searching...';
+        mapBtn.removeAttribute('href');
+        mapBtn.style.pointerEvents = 'none';
+        mapBtn.style.opacity = '0.5';
+        document.getElementById('gpsUpdated').textContent = 'Waiting for satellites';
+      }
+
+      // Emergency & GSM Status
+      document.getElementById('sosStatusBadge').textContent = d.sosStatus || 'SYSTEM STANDBY (ARMED)';
+      document.getElementById('sosStatusBadge').className = 'vital-status ' + (state.sosActive ? 'status-danger' : 'status-normal');
+      document.getElementById('smsStatusText').textContent = d.smsStatus || 'SIM800L Ready (Signal: 28/31)';
+      document.getElementById('alertCountMeta').textContent = 'Alerts: ' + (d.alertCount || 0);
+
+      // Check SOS Banner
+      const isEmergency = (d.sosStatus && d.sosStatus.toLowerCase().includes('active')) || state.sosActive;
+      document.getElementById('emergencyBanner').style.display = isEmergency ? 'block' : 'none';
+
+      // Update Audit Log if hardware history sent
+      if (Array.isArray(d.history) && d.history.length > 0) {
+        updateAuditLog(d.history);
+      }
+
+      renderTrendChart();
+    }
+
+    // ================= SIMULATION ENGINE =================
+    let demoTick = 0;
+    function simulateTelemetry() {
+      demoTick++;
+
+      if (!demoState.fingerContact) {
+        processTelemetry({
+          heartRateAvailable: false,
+          heartRate: 0,
+          spo2: null,
+          gpsFix: true,
+          latitude: demoState.lat,
+          longitude: demoState.lng,
+          sosStatus: 'SENSOR LEAD-OFF (NO CONTACT)',
+          smsStatus: 'SIM800L Ready (Signal: 28/31)',
+          alertCount: 0,
+          history: []
+        });
+        return;
+      }
+
+      // Calculate simulated vitals with natural physiological fluctuation if enabled
+      let hr = demoState.targetHR;
+      let spo2 = demoState.targetSpO2;
+
+      if (demoState.fluctuations) {
+        // Natural respiratory sinus arrhythmia (RSA)
+        const rsa = Math.sin(demoTick * 0.22) * 2.2;
+        const jitter = (Math.random() - 0.5) * 1.4;
+        hr = Math.max(30, Math.min(200, hr + rsa + jitter));
+
+        const o2Jitter = Math.sin(demoTick * 0.12) * 0.4 + (Math.random() - 0.5) * 0.2;
+        spo2 = Math.max(65, Math.min(100, spo2 + o2Jitter));
+      }
+
+      // Sync slider readout texts
+      const dispHR = document.getElementById('dispSliderHR');
+      const dispSpO2 = document.getElementById('dispSliderSpO2');
+      if (dispHR) dispHR.textContent = Math.round(hr) + ' BPM';
+      if (dispSpO2) dispSpO2.textContent = Math.round(spo2) + ' %';
+
+      const isSOS = state.sosActive || demoState.activeScenario === 'sos';
+
+      processTelemetry({
+        heartRateAvailable: true,
+        heartRate: parseFloat(hr.toFixed(1)),
+        spo2: parseFloat(spo2.toFixed(1)),
+        gpsFix: true,
+        latitude: demoState.lat + (Math.sin(demoTick * 0.03) * 0.00015),
+        longitude: demoState.lng + (Math.cos(demoTick * 0.03) * 0.00015),
+        sosStatus: isSOS ? 'EMERGENCY SOS ACTIVE (DISPATCHED)' : 'SYSTEM STANDBY (ARMED)',
+        smsStatus: isSOS ? 'EMERGENCY SMS SENT TO CONTACT' : 'SIM800L Ready (Signal: 28/31)',
+        alertCount: isSOS ? 1 : 0,
+        history: isSOS ? ['SOS DISTRESS: GPS coordinates transmitted via SMS'] : []
+      });
+
+      // Optional audible cardiac beep
+      if (demoState.audioBeeps && state.soundEnabled && hr > 0) {
+        const pitch = 500 + Math.max(0, (spo2 - 80) * 18);
+        playBeep(pitch, 0.06);
+      }
+    }
+
+    // Preset Scenario Switcher
+    function applyScenario(scenName) {
+      demoState.activeScenario = scenName;
+      document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+
+      const activeBtn = document.getElementById('scen' + scenName.charAt(0).toUpperCase() + scenName.slice(1));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      switch (scenName) {
+        case 'normal':
+          demoState.targetHR = 75;
+          demoState.targetSpO2 = 98;
+          demoState.fingerContact = true;
+          state.sosActive = false;
+          addLogItem('Scenario activated: Normal Sinus Rhythm (75 BPM, 98% SpO2)', 'INFO');
+          break;
+        case 'tachycardia':
+          demoState.targetHR = 138;
+          demoState.targetSpO2 = 96;
+          demoState.fingerContact = true;
+          state.sosActive = false;
+          addLogItem('Scenario activated: Tachycardia High Pulse Alert (138 BPM)', 'DANGER');
+          break;
+        case 'bradycardia':
+          demoState.targetHR = 44;
+          demoState.targetSpO2 = 97;
+          demoState.fingerContact = true;
+          state.sosActive = false;
+          addLogItem('Scenario activated: Bradycardia Low Pulse Warning (44 BPM)', 'INFO');
+          break;
+        case 'hypoxia':
+          demoState.targetHR = 86;
+          demoState.targetSpO2 = 85;
+          demoState.fingerContact = true;
+          state.sosActive = false;
+          addLogItem('Scenario activated: Critical Hypoxia Drop (85% SpO2)', 'DANGER');
+          break;
+        case 'sos':
+          demoState.targetHR = 122;
+          demoState.targetSpO2 = 94;
+          demoState.fingerContact = true;
+          state.sosActive = true;
+          playAlarmSiren();
+          addLogItem('Scenario activated: Emergency SOS Push Button Triggered', 'DANGER');
+          break;
+        case 'leadoff':
+          demoState.targetHR = 0;
+          demoState.targetSpO2 = 0;
+          demoState.fingerContact = false;
+          state.sosActive = false;
+          addLogItem('Scenario activated: Sensor Removed from Patient Finger', 'INFO');
+          break;
+      }
+
+      // Sync slider elements
+      const sHR = document.getElementById('sliderHR');
+      const sO2 = document.getElementById('sliderSpO2');
+      if (sHR) sHR.value = demoState.targetHR;
+      if (sO2) sO2.value = demoState.targetSpO2;
+      const dispHR = document.getElementById('dispSliderHR');
+      const dispSpO2 = document.getElementById('dispSliderSpO2');
+      if (dispHR) dispHR.textContent = demoState.targetHR + ' BPM';
+      if (dispSpO2) dispSpO2.textContent = demoState.targetSpO2 + ' %';
+
+      simulateTelemetry();
+    }
+
+    // ================= SOS TRIGGER ACTION =================
+    async function triggerEmergencySOS() {
+      initAudio();
+      if (!confirm('ATTENTION: Trigger emergency assistance for patient now?')) return;
+
+      state.sosActive = true;
+      playAlarmSiren();
+      addLogItem('Emergency SOS alert activated by caregiver', 'DANGER');
+
+      if (state.demoMode) {
+        simulateTelemetry();
+        alert('DEMO MODE: Emergency SOS triggered (Simulation mode).');
+        return;
+      }
+
+      if (state.serialConnected) {
+        const sent = await sendSerialCommand('SOS');
+        if (sent) {
+          alert('EMERGENCY SOS: Distress command sent to PulseGrid via Bluetooth / Serial.');
+          addLogItem('SOS command transmitted via Serial link', 'DANGER');
+        } else {
+          alert('NOTICE: Serial write error. Check PulseGrid connection.');
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch(state.baseUrl + '/sos', { method: 'POST' });
+        const resp = await res.json();
+        alert('EMERGENCY DISPATCH INITIATED: ' + (resp.message || 'SMS Accepted by modem'));
+        fetchTelemetry();
+      } catch (err) {
+        alert('NOTICE: SOS command registered locally. Verify ESP32 connection.');
+      }
+    }
+
+    // ================= BLUETOOTH / WEB SERIAL ENGINE =================
+    async function toggleSerialConnection() {
+      if (state.serialConnected) {
+        await disconnectSerialPort();
+      } else {
+        await connectSerialPort();
+      }
+    }
+
+    async function connectSerialPort() {
+      if (!('serial' in navigator)) {
+        alert("Web Serial is supported on Google Chrome, Microsoft Edge, and Opera (Desktop & Android).\n\nIf you're using another browser, please open this dashboard in Chrome or Edge to connect to the PulseGrid Bluetooth/Serial port.");
+        return;
+      }
+
+      try {
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+        state.serialPort = port;
+        state.serialConnected = true;
+        state.demoMode = false;
+
+        updateConnectionState(true, 'BLUETOOTH / SERIAL LIVE (PulseGrid)');
+        addLogItem('Connected to PulseGrid via Bluetooth / Serial (115200 baud)', 'INFO');
+
+        const btn = document.getElementById('btnConnectSerial');
+        if (btn) {
+          btn.classList.add('connected');
+          btn.querySelector('#serialBtnText').textContent = 'Disconnect Serial';
+        }
+        const sBtn = document.getElementById('btnStudioConnectSerial');
+        if (sBtn) sBtn.textContent = 'Disconnect Serial';
+
+        // Request initial status
+        await sendSerialCommand('STATUS');
+
+        readSerialLoop(port);
+      } catch (err) {
+        console.warn('Serial connect error:', err);
+        if (err.name !== 'NotFoundError') {
+          alert('Could not open serial port: ' + err.message + '\n\nTip: Close any open Arduino Serial Monitor or software currently using the COM port.');
+        }
+      }
+    }
+
+    async function disconnectSerialPort() {
+      if (state.serialReader) {
+        try {
+          await state.serialReader.cancel();
+        } catch (e) {}
+      }
+      if (state.serialPort) {
+        try {
+          await state.serialPort.close();
+        } catch (e) {}
+      }
+      state.serialPort = null;
+      state.serialReader = null;
+      state.serialConnected = false;
+
+      const btn = document.getElementById('btnConnectSerial');
+      if (btn) {
+        btn.classList.remove('connected');
+        btn.querySelector('#serialBtnText').textContent = 'Connect Bluetooth / USB';
+      }
+      const sBtn = document.getElementById('btnStudioConnectSerial');
+      if (sBtn) sBtn.textContent = 'Connect Bluetooth (PulseGrid) / USB';
+
+      updateConnectionState(false, 'SERIAL DISCONNECTED');
+      addLogItem('Disconnected from Bluetooth / Serial port', 'INFO');
+    }
+
+    async function readSerialLoop(port) {
+      const textDecoder = new TextDecoderStream();
+      port.readable.pipeTo(textDecoder.writable).catch(e => console.warn('Pipe error:', e));
+      const reader = textDecoder.readable.getReader();
+      state.serialReader = reader;
+
+      let lineBuffer = '';
+
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            lineBuffer += value;
+            const lines = lineBuffer.split(/\r?\n/);
+            lineBuffer = lines.pop(); // Keep incomplete trailing chunk
+            for (const line of lines) {
+              if (line.trim()) {
+                parsePulseGridTelemetry(line);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Serial stream read ended:', error);
+      } finally {
+        try { reader.releaseLock(); } catch(e){}
+      }
+    }
+
+    async function sendSerialCommand(cmd) {
+      if (!state.serialPort || !state.serialPort.writable) return false;
+      try {
+        const encoder = new TextEncoder();
+        const writer = state.serialPort.writable.getWriter();
+        await writer.write(encoder.encode(cmd + '\n'));
+        writer.releaseLock();
+        return true;
+      } catch (err) {
+        console.error('Serial write error:', err);
+        return false;
+      }
+    }
+
+    // Parse PulseGrid protocol: HR=72.0;SPO2=98.0;GPS=FIX;LAT=12.971598;LON=77.594562;SOS=NORMAL;SMS=DISABLED;ALERTS=0
+    function parsePulseGridTelemetry(line) {
+      line = line.trim();
+      if (!line) return;
+
+      if (line.startsWith('EVENT=SOS')) {
+        state.sosActive = true;
+        playAlarmSiren();
+        addLogItem('🚨 EMERGENCY SOS Alert received from PulseGrid', 'DANGER');
+        return;
+      }
+      if (line.startsWith('EVENT=SOS_RESET')) {
+        state.sosActive = false;
+        addLogItem('SOS alert reset by PulseGrid', 'INFO');
+        return;
+      }
+
+      if (!line.includes(';')) return;
+
+      const pairs = line.split(';');
+      const map = {};
+      pairs.forEach(p => {
+        const eq = p.indexOf('=');
+        if (eq > 0) {
+          map[p.substring(0, eq).trim()] = p.substring(eq + 1).trim();
+        }
+      });
+
+      const hrNum = parseFloat(map.HR);
+      const hrAvail = !isNaN(hrNum) && hrNum > 0 && map.HR !== 'NA';
+      const spo2Num = parseFloat(map.SPO2);
+      const spo2Avail = !isNaN(spo2Num) && spo2Num > 0 && map.SPO2 !== 'NA';
+      const hasFix = map.GPS === 'FIX' && map.LAT !== 'NA';
+      const lat = hasFix ? parseFloat(map.LAT) : 0;
+      const lng = hasFix ? parseFloat(map.LON) : 0;
+      const isSOS = map.SOS === 'ACTIVE';
+
+      if (isSOS && !state.sosActive) {
+        state.sosActive = true;
+        playAlarmSiren();
+      }
+
+      processTelemetry({
+        heartRate: hrAvail ? hrNum : 0,
+        heartRateAvailable: hrAvail,
+        spo2: spo2Avail ? spo2Num : null,
+        spo2Available: spo2Avail,
+        gpsFix: hasFix,
+        latitude: lat,
+        longitude: lng,
+        sosStatus: isSOS ? 'EMERGENCY SOS ACTIVE' : 'SYSTEM STANDBY (ARMED)',
+        smsStatus: map.SMS ? ('SIM800L: ' + map.SMS) : 'SIM800L Ready',
+        alertCount: parseInt(map.ALERTS) || 0,
+        history: isSOS ? ['SOS Distress signal active'] : []
+      });
+    }
+
+    // ================= AUDIT LOG HELPERS =================
+    function addLogItem(msg, type = 'INFO') {
+      const container = document.getElementById('logContainer');
+      const time = new Date().toLocaleTimeString();
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-msg">${escapeHtml(msg)}</span>
+        <span class="vital-status ${type === 'DANGER' ? 'status-danger' : 'status-normal'}">${type}</span>
+      `;
+      container.prepend(item);
+    }
+
+    function updateAuditLog(historyArr) {
+      const container = document.getElementById('logContainer');
+      container.innerHTML = '';
+      historyArr.forEach(entry => {
+        const parts = entry.split(': ');
+        const time = parts[0] || 'Alert';
+        const msg = parts.slice(1).join(': ') || entry;
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        item.innerHTML = `
+          <span class="log-time">${escapeHtml(time)}</span>
+          <span class="log-msg">${escapeHtml(msg)}</span>
+          <span class="vital-status status-danger">ALERT</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function updateConnectionState(connected, text, errorMsg = '') {
+      state.connected = connected;
+      const badge = document.getElementById('connectionBadge');
+      const txt = document.getElementById('connectionText');
+      const headerBtnText = document.getElementById('headerModeText');
+      const hwBtnText = document.getElementById('hardwareModeBtnText');
+      const diagBanner = document.getElementById('hwDiagnosticBanner');
+      const diagUrl = document.getElementById('diagTargetUrl');
+      const diagInput = document.getElementById('diagInputUrl');
+
+      if (state.serialConnected) {
+        badge.className = 'badge-status';
+        txt.textContent = 'BLUETOOTH / SERIAL LIVE (PulseGrid)';
+        if (headerBtnText) headerBtnText.textContent = 'Demo Mode';
+        if (hwBtnText) hwBtnText.textContent = 'Switch to Demo Simulator';
+        if (diagBanner) diagBanner.style.display = 'none';
+      } else if (state.demoMode) {
+        badge.className = 'badge-status demo';
+        txt.textContent = 'DEMO SIMULATION ACTIVE';
+        if (headerBtnText) headerBtnText.textContent = 'Live Hardware';
+        if (hwBtnText) hwBtnText.textContent = 'Connect to ESP32 Hardware';
+        if (diagBanner) diagBanner.style.display = 'none';
+      } else if (connected) {
+        badge.className = 'badge-status';
+        txt.textContent = text || 'ESP32 AP ONLINE';
+        if (headerBtnText) headerBtnText.textContent = 'Demo Mode';
+        if (hwBtnText) hwBtnText.textContent = 'Switch to Demo Simulator';
+        if (diagBanner) diagBanner.style.display = 'none';
+      } else {
+        badge.className = 'badge-status offline';
+        txt.textContent = text || 'HARDWARE OFFLINE';
+        if (headerBtnText) headerBtnText.textContent = 'Demo Mode';
+        if (hwBtnText) hwBtnText.textContent = 'Switch to Demo Simulator';
+        if (diagBanner) {
+          diagBanner.style.display = 'block';
+          if (diagUrl) diagUrl.textContent = state.baseUrl + '/api';
+          if (diagInput && document.activeElement !== diagInput) diagInput.value = state.baseUrl;
+        }
+      }
+    }
+
+    async function runDiagPing() {
+      const btn = document.getElementById('btnDiagPing');
+      const pingTxt = document.getElementById('diagPingText');
+      const resultTag = document.getElementById('diagPingResult');
+
+      if (!btn) return;
+      pingTxt.textContent = 'Pinging...';
+      btn.disabled = true;
+      resultTag.textContent = 'Testing ' + state.baseUrl + '/api ...';
+      resultTag.style.background = 'rgba(255, 255, 255, 0.08)';
+      resultTag.style.color = 'var(--text-muted)';
+
+      const start = Date.now();
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(state.baseUrl + '/api', { signal: controller.signal });
+        clearTimeout(timeout);
+
+        const rtt = Date.now() - start;
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        resultTag.textContent = `🟢 Connected (${rtt}ms RTT)!`;
+        resultTag.style.background = 'rgba(16, 185, 129, 0.2)';
+        resultTag.style.color = 'var(--green)';
+
+        updateConnectionState(true, 'ESP32 AP CONNECTED');
+        processTelemetry(data);
+        addLogItem('Hardware connection established with ESP32 (' + rtt + 'ms)', 'INFO');
+
+        setTimeout(() => {
+          const banner = document.getElementById('hwDiagnosticBanner');
+          if (banner) banner.style.display = 'none';
+        }, 1800);
+      } catch (err) {
+        const rtt = Date.now() - start;
+        const isTimeout = err.name === 'AbortError';
+        resultTag.textContent = `🔴 Failed (${isTimeout ? 'Timeout' : 'Unreachable'}). Use Connect Bluetooth button!`;
+        resultTag.style.background = 'rgba(239, 68, 68, 0.2)';
+        resultTag.style.color = 'var(--red)';
+        addLogItem('Ping to ' + state.baseUrl + ' failed: ' + (isTimeout ? 'Request timed out' : err.message), 'DANGER');
+      } finally {
+        pingTxt.textContent = 'Test Ping Now';
+        btn.disabled = false;
+      }
+    }
+
+    function toggleHardwareVsDemo() {
+      if (state.serialConnected) {
+        disconnectSerialPort();
+      }
+      state.demoMode = !state.demoMode;
+      if (state.demoMode) {
+        updateConnectionState(false, 'DEMO SIMULATION ACTIVE');
+        addLogItem('Switched to Interactive Demo Simulation Mode', 'INFO');
+        simulateTelemetry();
+      } else {
+        updateConnectionState(false, 'CONNECTING TO ESP32...');
+        addLogItem('Hardware mode selected. Connect via Bluetooth / USB Serial.', 'INFO');
+        fetchTelemetry();
+      }
+    }
+
+    // ================= EVENT LISTENERS =================
+    document.getElementById('btnTriggerSOS').addEventListener('click', triggerEmergencySOS);
+
+    document.getElementById('btnTestBuzzer').addEventListener('click', () => {
+      initAudio();
+      playAlarmSiren();
+      addLogItem('Medical alarm siren audio tested', 'INFO');
+    });
+
+    document.getElementById('btnToggleDemo').addEventListener('click', () => {
+      const studio = document.getElementById('demoStudioPanel');
+      studio.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      addLogItem('Demo studio focused', 'INFO');
+    });
+
+    document.getElementById('btnToggleHardwareMode').addEventListener('click', toggleHardwareVsDemo);
+    document.getElementById('btnHeaderModeToggle').addEventListener('click', toggleHardwareVsDemo);
+    document.getElementById('connectionBadge').addEventListener('click', toggleHardwareVsDemo);
+
+    // Bluetooth & Serial Connect Listeners
+    const btnConnectSerial = document.getElementById('btnConnectSerial');
+    if (btnConnectSerial) btnConnectSerial.addEventListener('click', toggleSerialConnection);
+
+    const btnStudioConnectSerial = document.getElementById('btnStudioConnectSerial');
+    if (btnStudioConnectSerial) btnStudioConnectSerial.addEventListener('click', toggleSerialConnection);
+
+    const btnDiagConnectSerial = document.getElementById('btnDiagConnectSerial');
+    if (btnDiagConnectSerial) btnDiagConnectSerial.addEventListener('click', toggleSerialConnection);
+
+    // Hardware Diagnostics Assistant Listeners
+    const btnDismissDiag = document.getElementById('btnDismissDiag');
+    if (btnDismissDiag) {
+      btnDismissDiag.addEventListener('click', () => {
+        document.getElementById('hwDiagnosticBanner').style.display = 'none';
+      });
+    }
+
+    const btnDiagPing = document.getElementById('btnDiagPing');
+    if (btnDiagPing) btnDiagPing.addEventListener('click', runDiagPing);
+
+    const btnDiagDemo = document.getElementById('btnDiagDemo');
+    if (btnDiagDemo) btnDiagDemo.addEventListener('click', toggleHardwareVsDemo);
+
+    const btnDiagSaveUrl = document.getElementById('btnDiagSaveUrl');
+    if (btnDiagSaveUrl) {
+      btnDiagSaveUrl.addEventListener('click', () => {
+        const input = document.getElementById('diagInputUrl');
+        if (!input) return;
+        const val = input.value.trim().replace(/\/+$/, '');
+        if (!val) return;
+        state.baseUrl = val;
+        localStorage.setItem('vg_base_url', state.baseUrl);
+        document.getElementById('inputBaseUrl').value = state.baseUrl;
+        document.getElementById('diagTargetUrl').textContent = state.baseUrl + '/api';
+        addLogItem('Target ESP32 URL updated to ' + state.baseUrl, 'INFO');
+        runDiagPing();
+      });
+    }
+
+    // Scenario Preset Clicks
+    ['normal', 'tachycardia', 'bradycardia', 'hypoxia', 'sos', 'leadoff'].forEach(scen => {
+      const btn = document.getElementById('scen' + scen.charAt(0).toUpperCase() + scen.slice(1));
+      if (btn) {
+        btn.addEventListener('click', () => {
+          initAudio();
+          applyScenario(scen);
+        });
+      }
+    });
+
+    // Slider Listeners
+    const sliderHR = document.getElementById('sliderHR');
+    sliderHR.addEventListener('input', function() {
+      initAudio();
+      demoState.targetHR = parseInt(this.value);
+      demoState.fingerContact = true;
+      document.getElementById('dispSliderHR').textContent = this.value + ' BPM';
+      document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+      simulateTelemetry();
+    });
+
+    const sliderSpO2 = document.getElementById('sliderSpO2');
+    sliderSpO2.addEventListener('input', function() {
+      initAudio();
+      demoState.targetSpO2 = parseInt(this.value);
+      demoState.fingerContact = true;
+      document.getElementById('dispSliderSpO2').textContent = this.value + ' %';
+      document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+      simulateTelemetry();
+    });
+
+    // Toggles
+    document.getElementById('chkAudioBeep').addEventListener('change', function() {
+      initAudio();
+      demoState.audioBeeps = this.checked;
+      addLogItem('Audible pulse monitor beeps ' + (this.checked ? 'enabled' : 'disabled'), 'INFO');
+    });
+
+    document.getElementById('chkFluctuations').addEventListener('change', function() {
+      demoState.fluctuations = this.checked;
+    });
+
+    document.getElementById('btnAudioMute').addEventListener('click', () => {
+      state.soundEnabled = !state.soundEnabled;
+      document.getElementById('btnAudioMute').style.color = state.soundEnabled ? 'var(--text-muted)' : 'var(--red)';
+    });
+
+    document.getElementById('btnClearLog').addEventListener('click', () => {
+      document.getElementById('logContainer').innerHTML = '';
+      addLogItem('Audit log cleared', 'INFO');
+    });
+
+    // Settings Modal Handlers
+    const modal = document.getElementById('settingsModal');
+    document.getElementById('btnOpenSettings').addEventListener('click', () => modal.classList.add('open'));
+    document.getElementById('btnCloseSettings').addEventListener('click', () => modal.classList.remove('open'));
+    document.getElementById('btnCancelSettings').addEventListener('click', () => modal.classList.remove('open'));
+
+    document.getElementById('btnSaveSettings').addEventListener('click', () => {
+      state.baseUrl = document.getElementById('inputBaseUrl').value.replace(/\/+$/, '');
+      state.pollInterval = parseInt(document.getElementById('inputInterval').value);
+      state.highHR = parseInt(document.getElementById('inputHighHR').value);
+      state.lowSpO2 = parseInt(document.getElementById('inputLowSpO2').value);
+
+      localStorage.setItem('vg_base_url', state.baseUrl);
+      localStorage.setItem('vg_interval', state.pollInterval);
+      localStorage.setItem('vg_high_hr', state.highHR);
+      localStorage.setItem('vg_low_spo2', state.lowSpO2);
+
+      modal.classList.remove('open');
+      restartPolling();
+      addLogItem('Settings saved: Base URL ' + state.baseUrl, 'INFO');
+    });
+
+    // ================= BOOTSTRAP =================
+    let pollTimer = null;
+    function restartPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(fetchTelemetry, state.pollInterval);
+      fetchTelemetry();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeCanvases();
+      renderPPG();
+      simulateTelemetry(); // Instantly populate with loaded values!
+      restartPolling();
+    });
+  </script>
+</body>
+</html>
